@@ -13,11 +13,7 @@ import (
 var greenOut = color.New(color.FgHiGreen)
 
 func Foo(auditor audit.AuditorService) http.Handler {
-	fooAuditParams := func(r *http.Request) common.Params {
-		return nil
-	}
-
-	return auditing.Wrap(fooHandleFunc(), "GET foo", auditor, fooAuditParams, 200)
+	return auditing.Wrap(fooHandleFunc(), "GET foo", auditor, nil, 200)
 }
 
 func Bar(auditor audit.AuditorService) http.Handler {

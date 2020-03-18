@@ -9,9 +9,13 @@ import (
 )
 
 var (
-	blueOut = color.New(color.FgHiBlue)
-	redOut  = color.New(color.FgHiRed)
+	blueOut   = color.New(color.FgHiBlue)
+	redOut    = color.New(color.FgHiRed)
+	yellowOut = color.New(color.FgHiYellow)
 )
+
+type Stub struct {
+}
 
 type Service interface {
 	Record(ctx context.Context, action string, result string, params common.Params) error
@@ -51,8 +55,12 @@ func Wrap(h http.HandlerFunc, action string, auditor Service, getParamsFunc GetA
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	blueOut.Println("audit handler: recording action attempted")
 	ctx := r.Context()
+
 	// get the audit parameters.
-	params := h.GetAuditParams(r)
+	var params common.Params
+	if h.GetAuditParams != nil {
+		params = h.GetAuditParams(r)
+	}
 
 	// audit the action is being attempted
 	if err := h.Auditor.Record(ctx, h.Action, "attempted", params); err != nil {
@@ -89,4 +97,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *ResponseWriter) WriteHeader(statusCode int) {
 	s.Status = statusCode
 	s.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (s *Stub) Record(ctx context.Context, action string, result string, params common.Params) error {
+	yellowOut.Printf("auditing service: recording event  - action: %s, status: %s, params %+v\n", action, result, params)
+	return nil
 }
